@@ -3,6 +3,7 @@
 	#include "raylib.h"
 	#include "mathf.h"
 	#include "raymath.h"
+	#include "world.h"
 
 	#include <stdlib.h>
 	#include <assert.h>
@@ -10,14 +11,10 @@
 
 #define MAX_BODIES 100000
 
+//https://chat.openai.com/share/40b5a6e1-c9ca-4bbb-bec9-c849d2444986
 int main(void) {
 	InitWindow(1280, 720, "Pheesics Ingin");
 	SetTargetFPS(60);
-
-	// array of bodies
-	Body* bodies = (Body*)malloc(sizeof(Body) * MAX_BODIES);
-	assert(bodies);
-	int bodyCount = 0;
 
 	// game loop
 	while (!WindowShouldClose()) {
@@ -26,10 +23,16 @@ int main(void) {
 		float fps = (float)GetFPS();
 
 		Vector2 position = GetMousePosition();
-		if (IsMouseButtonDown(0)) {
-			bodies[bodyCount].position = position;
-			bodies[bodyCount].velocity = createVector2(getRandomFloatValue(-5, 5), getRandomFloatValue(-5, 5));
-			bodyCount++;
+		if (IsMouseButtonPressed(0)) {
+			createBody(position);
+		}
+
+		Body* currentBody = bodies;
+		while (currentBody != NULL) {
+			// Update body position (this might be unnecessary for now)
+			// currentBody->position = Vector2Add(currentBody->position, currentBody->velocity);
+
+			currentBody = currentBody->next;
 		}
 
 		//render
@@ -42,14 +45,15 @@ int main(void) {
 
 		DrawCircle((int)position.x, (int)position.y, 20, MAGENTA);
 
-		for (int i = 0; i < bodyCount; i++) {
-			bodies[i].position = Vector2Add(bodies[i].position, bodies[i].velocity);
-			DrawCircle((int)bodies[i].position.x, (int)bodies[i].position.y, 20, YELLOW);
+		currentBody = bodies;
+		while (currentBody != NULL) {
+			DrawCircle((int)currentBody->position.x, (int)currentBody->position.y, 20, YELLOW);
+			currentBody = currentBody->next;
 		}
 
 		EndDrawing();
 	}
 	CloseWindow();
-	free(bodies);
+	//free(bodies);
 	return 0;
 }
