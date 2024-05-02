@@ -1,12 +1,13 @@
 #pragma region Includes
-	#include "body.h"
-	#include "raylib.h"
-	#include "mathf.h"
-	#include "raymath.h"
-	#include "world.h"
+#include "body.h"
+#include "raylib.h"
+#include "mathf.h"
+#include "raymath.h"
+#include "world.h"
+#include "integrator.h"
 
-	#include <stdlib.h>
-	#include <assert.h>
+#include <stdlib.h>
+#include <assert.h>
 #pragma endregion
 
 #define MAX_BODIES 100000
@@ -23,15 +24,24 @@ int main(void) {
 		float fps = (float)GetFPS();
 
 		Vector2 position = GetMousePosition();
-		if (IsMouseButtonPressed(0)) {
-			createBody(position);
+		if (IsMouseButtonDown(0)) {
+			nkBody* body = createBody(position);
+			body->mass = getRandomFloatValue(1, 10);
 		}
 
-		Body* currentBody = bodies;
+		// apply force
+		nkBody* currentBody = nkBodies;
 		while (currentBody != NULL) {
-			// Update body position (this might be unnecessary for now)
-			// currentBody->position = Vector2Add(currentBody->position, currentBody->velocity);
+			applyForce(currentBody, createVector2(0, -10000));
+			currentBody = currentBody->next;
+		}
 
+		// update bodies
+		currentBody = nkBodies;
+		while (currentBody != NULL) {
+			//explicitEuler(currentBody, dt);
+			semiImplicitEuler(currentBody, dt);
+			clearForce(currentBody);
 			currentBody = currentBody->next;
 		}
 
@@ -45,9 +55,10 @@ int main(void) {
 
 		DrawCircle((int)position.x, (int)position.y, 20, MAGENTA);
 
-		currentBody = bodies;
+		// draw bodies
+		currentBody = nkBodies;
 		while (currentBody != NULL) {
-			DrawCircle((int)currentBody->position.x, (int)currentBody->position.y, 20, YELLOW);
+			DrawCircle((int)currentBody->position.x, (int)currentBody->position.y, currentBody->mass, YELLOW);
 			currentBody = currentBody->next;
 		}
 

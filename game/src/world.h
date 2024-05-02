@@ -1,8 +1,8 @@
 #pragma once
 #include "body.h"
 
-extern Body* bodies;
-extern int bodyCount;
+extern nkBody* nkBodies;
+extern int nkBodyCount;
 
-Body* createBody();
-void destroyBody(Body* body);
+nkBody* createBody(Vector2 mousePosition);
+void destroyBody(nkBody* body);

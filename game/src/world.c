@@ -1,34 +1,33 @@
 #include "world.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
-Body* bodies = NULL;
-int bodyCount = 0;
+nkBody* nkBodies = NULL;
+int nkBodyCount = 0;
 
-Body* createBody(Vector2 mousePosition) {
-	Body* newBody = (Body*)malloc(sizeof(Body));
-	assert(newBody);
+nkBody* createBody(Vector2 mousePosition) {
+	nkBody* body = (nkBody*)malloc(sizeof(nkBody));
+	assert(body);
 
-	newBody->position = mousePosition;
-	newBody->velocity.x = 0;
-	newBody->velocity.y = 0;
-	newBody->force.x = 0;
-	newBody->force.y = 0;
+	memset(body, 0, sizeof(nkBody));
 
-	newBody->prev = NULL;
-	newBody->next = bodies;
+	body->position = mousePosition;
 
-	if (bodies != NULL) {
-		bodies->prev = newBody;
+	body->prev = NULL;
+	body->next = nkBodies;
+
+	if (nkBodies != NULL) {
+		nkBodies->prev = body;
 	}
 
-	bodies = newBody;
+	nkBodies = body;
 
-	bodyCount++;
-	return newBody;
+	nkBodyCount++;
+	return body;
 }
 
-void destroyBody(Body* body) {
+void destroyBody(nkBody* body) {
 	assert(body != NULL);
 
 	if (body->prev != NULL) {
@@ -38,9 +37,9 @@ void destroyBody(Body* body) {
 		body->next->prev = body->prev;
 	}
 
-	if (bodies == body) {
-		bodies = body->next;
+	if (nkBodies == body) {
+		nkBodies = body->next;
 	}
-	bodyCount--;
+	nkBodyCount--;
 	free(body);
 }
