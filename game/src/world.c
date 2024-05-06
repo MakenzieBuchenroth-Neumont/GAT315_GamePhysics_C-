@@ -1,10 +1,13 @@
 #include "world.h"
+#include "body.h"
+
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 
 nkBody* nkBodies = NULL;
 int nkBodyCount = 0;
+Vector2 nkGravity;
 
 nkBody* createBody(Vector2 mousePosition) {
 	nkBody* body = (nkBody*)malloc(sizeof(nkBody));
