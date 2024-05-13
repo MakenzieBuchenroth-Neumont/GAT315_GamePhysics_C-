@@ -9,13 +9,21 @@ nkBody* nkBodies = NULL;
 int nkBodyCount = 0;
 Vector2 nkGravity;
 
-nkBody* createBody(Vector2 mousePosition) {
+nkBody* createBody(Vector2 position, float mass, nkBodyType bodyType) {
 	nkBody* body = (nkBody*)malloc(sizeof(nkBody));
 	assert(body);
 
 	memset(body, 0, sizeof(nkBody));
+	body->position = position;
+	body->mass = mass;
+	body->inverseMass = (bodyType == BT_DYNAMIC) ? 1 / mass : 0;
+	body->type = bodyType;
 
-	body->position = mousePosition;
+	return body;
+}
+
+void addBody(nkBody* body) {
+	assert(body);
 
 	body->prev = NULL;
 	body->next = nkBodies;

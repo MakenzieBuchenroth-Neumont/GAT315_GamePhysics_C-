@@ -21,3 +21,11 @@ inline Vector2 getVector2FromAngle(float angle) {
 
 	return v;
 }
+
+inline int getRandomIntValue01() {
+	return rand() / (int)RAND_MAX;
+}
+
+inline int getRandomIntValue(int min, int max) {
+	return min + (max - min) * getRandomIntValue01();
+}

@@ -6,6 +6,8 @@
 #include "world.h"
 #include "integrator.h"
 #include "force.h"
+#include "render.h"
+#include "editor.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -17,11 +19,13 @@
 //https://chat.openai.com/share/40b5a6e1-c9ca-4bbb-bec9-c849d2444986
 int main(void) {
 	InitWindow(1280, 720, "Pheesics Ingin");
+	InitEditor();
+	HideCursor();
 	SetTargetFPS(60);
 
 	// initialize world
 	//nkGravity = (Vector2){ 0, 30 };
-	nkGravity = (Vector2){ 0, 0 };
+	nkGravity = (Vector2){ 0, -1 };
 
 	// game loop
 	while (!WindowShouldClose()) {
@@ -30,60 +34,67 @@ int main(void) {
 		float fps = (float)GetFPS();
 
 		Vector2 position = GetMousePosition();
-		if (IsMouseButtonPressed(0)) {
+
+		nkScreenZoom = Clamp(nkScreenZoom, 0.1f, 10);
+
+		nkScreenZoom += GetMouseWheelMove() * 0.2f;
+
+		UpdateEditor(position);
+		if (IsMouseButtonDown(0)) {
 			Color hsvColor = ColorFromHSV(getRandomFloatValue(0, 360), getRandomFloatValue(0, 100), getRandomFloatValue(100, 100));
-			float angleIncrement = 360.0f / 20; // angle between each point of the star
-			// circular,multicolored burst
-			/*for (int i = 0; i < 50; i++) {
-				nkBody* body = createBody(position);
-				body->color.x = (float)hsvColor.r / 255.0f;
-				body->color.y = (float)hsvColor.g / 255.0f;
-				body->color.z = (float)hsvColor.b / 255.0f;
-				body->mass = getRandomFloatValue(1, 10);
-				body->inverseMass = 1 / body->mass;
-				body->type = BT_DYNAMIC;
-				body->damping = 2.5f;
-				body->gravityScale = 20;
-				Vector2 force = Vector2Scale(getVector2FromAngle(getRandomFloatValue(0, 360) * DEG2RAD), getRandomFloatValue(1000, 2000));
-				applyForce(body, force, FM_IMPULSE);
-			}*/
-			// directed burst
-			/*float angle = getRandomFloatValue(0, 360);
-			for (int i = 0; i < 50; i++) {
-				nkBody* body = createBody(position);
-				body->color.x = (float)hsvColor.r / 255.0f;
-				body->color.y = (float)hsvColor.g / 255.0f;
-				body->color.z = (float)hsvColor.b / 255.0f;
-				body->mass = getRandomFloatValue(1, 10);
-				body->inverseMass = 1 / body->mass;
-				body->type = BT_DYNAMIC;
-				body->damping = 2.5f;
-				body->gravityScale = 20;
-				Vector2 force = Vector2Scale(getVector2FromAngle((angle + getRandomFloatValue(-30, 30)) * DEG2RAD), getRandomFloatValue(1000, 2000));
-				applyForce(body, force, FM_IMPULSE);
-			}*/
-			// starburst
-			/*for (int i = 0; i < 200; i++) {
-				nkBody* body = createBody(position);
-				body->color.x = (float)hsvColor.r / 255.0f;
-				body->color.y = (float)hsvColor.g / 255.0f;
-				body->color.z = (float)hsvColor.b / 255.0f;
-				body->mass = getRandomFloatValue(1, 10);
-				body->inverseMass = 1 / body->mass;
-				body->type = BT_DYNAMIC;
-				body->damping = 2.5f;
-				body->gravityScale = 20;
+			float angleIncrement = 360.0f / 5; // angle between each point of the star
+			int random = GetRandomValue(0, 2);
+			if (random == 0) {
+				// circular,multicolored burst
+				for (int i = 0; i < 1; i++) {
+					nkBody* body = createBody(ConvertScreenToWorld(position), getRandomFloatValue(nkEditorData.massMinValue, nkEditorData.massMaxValue), nkEditorData.DropdownBox004Active);
+					body->position = ConvertScreenToWorld(position);
+					body->color.x = (float)hsvColor.r / 255.0f;
+					body->color.y = (float)hsvColor.g / 255.0f;
+					body->color.z = (float)hsvColor.b / 255.0f;
+					body->damping = 0; //2.5f;
+					body->gravityScale = 0; //20;
 
-				float angle = i * angleIncrement * DEG2RAD;
+					addBody(body);
+					Vector2 force = Vector2Scale(getVector2FromAngle(getRandomFloatValue(0, 360) * DEG2RAD), getRandomFloatValue(1000, 2000));
+				}
+			}
+			else if (random == 1) {
+				// directed burst
+				float angle = getRandomFloatValue(0, 360);
+				for (int i = 0; i < 1; i++) {
+					nkBody* body = createBody(ConvertScreenToWorld(position), getRandomFloatValue(nkEditorData.massMinValue, nkEditorData.massMaxValue), nkEditorData.DropdownBox004Active);
+					
+					body->color.x = (float)hsvColor.r / 255.0f;
+					body->color.y = (float)hsvColor.g / 255.0f;
+					body->color.z = (float)hsvColor.b / 255.0f;
+					
+					body->damping = 0; //2.5f;
+					body->gravityScale = 0; //20;
+					Vector2 force = Vector2Scale(getVector2FromAngle((angle + getRandomFloatValue(-30, 30)) * DEG2RAD), getRandomFloatValue(1000, 2000));
+				}
+			}
+			else {
+				// starburst
+				for (int i = 0; i < 1; i++) {
+					nkBody* body = createBody(ConvertScreenToWorld(position), getRandomFloatValue(nkEditorData.massMinValue, nkEditorData.massMaxValue), nkEditorData.DropdownBox004Active);
+					
+					body->color.x = (float)hsvColor.r / 255.0f;
+					body->color.y = (float)hsvColor.g / 255.0f;
+					body->color.z = (float)hsvColor.b / 255.0f;
+					
+					body->damping = 0; //2.5f;
+					body->gravityScale = 0; //20;
 
-				Vector2 offset = Vector2Scale(getVector2FromAngle(angle),1000);
+					float angle = i * angleIncrement * DEG2RAD;
 
-				applyForce(body, offset, FM_IMPULSE);
-			}*/
+					Vector2 offset = Vector2Scale(getVector2FromAngle(angle), 1000);
+				}
+			}
 		}
 
 		// apply force
-		//applyGravitation(nkBodies, 100);
+		applyGravitation(nkBodies, nkEditorData.gravitationScaleValue);
 
 		// update bodies
 		for (nkBody* body = nkBodies; body; body = body->next) {
@@ -94,17 +105,21 @@ int main(void) {
 		BeginDrawing();
 		ClearBackground(BLACK);
 
+
 		//stats
 		DrawText(TextFormat("FPS: %.2f (%.2f ms)", fps, 1000 / fps), 10, 10, 20, LIME);
 		DrawText(TextFormat("Frame: %.4f", dt), 10, 30, 20, LIME);
 
-		DrawCircle((int)position.x, (int)position.y, 20, MAGENTA);
-		
+		//DrawCircle((int)position.x, (int)position.y, 20, MAGENTA);
+
 		for (nkBody* body = nkBodies; body; body = body->next) {
 			Color circleColor = { (unsigned char)(body->color.x * 255), (unsigned char)(body->color.y * 255), (unsigned char)(body->color.z * 255), 255 };
-			DrawCircle((int)body->position.x, (int)body->position.y, body->mass, circleColor);
+
+			Vector2 screen = ConvertWorldToScreen(body->position);
+			DrawCircle((int)screen.x, (int)screen.y, ConvertWorldToPixel(body->mass), circleColor);
 		}
-		
+
+		DrawEditor(position);
 
 		EndDrawing();
 	}
