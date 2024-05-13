@@ -9,6 +9,7 @@ extern nkBody* nkBodies;
 extern int nkBodyCount;
 extern Vector2 nkGravity;
 
-nkBody* createBody(Vector2 position, float mass, nkBodyType bodyType);
+nkBody* createBody(Vector2 position, float mass, nkBody_t bodyType);
 void addBody(nkBody* body);
 void destroyBody(nkBody* body);
+void destroyAllBodies();

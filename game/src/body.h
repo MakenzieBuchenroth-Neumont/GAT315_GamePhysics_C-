@@ -6,16 +6,16 @@ typedef enum {
 	BT_STATIC,
 	BT_KINEMATIC,
 	BT_DYNAMIC
-} nkBodyType;
+} nkBody_t;
 
 typedef enum {
 	FM_FORCE,
 	FM_IMPULSE,
 	FM_VELOCITY
-} nkForceMode;
+} nkForceMode_t;
 
 typedef struct nkBody {
-	nkBodyType type;
+	nkBody_t type;
 
 	// acceleration -> velocity -> position
 	Vector2 position;
@@ -36,7 +36,7 @@ typedef struct nkBody {
 	struct nkBody* prev;
 } nkBody;
 
-inline void applyForce(nkBody* body, Vector2 force, nkForceMode forceMode) {
+inline void applyForce(nkBody* body, Vector2 force, nkForceMode_t forceMode) {
 	if (body->type != BT_DYNAMIC) return;
 
 	switch (forceMode) {

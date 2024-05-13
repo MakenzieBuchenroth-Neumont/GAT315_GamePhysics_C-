@@ -9,7 +9,7 @@ nkBody* nkBodies = NULL;
 int nkBodyCount = 0;
 Vector2 nkGravity;
 
-nkBody* createBody(Vector2 position, float mass, nkBodyType bodyType) {
+nkBody* createBody(Vector2 position, float mass, nkBody_t bodyType) {
 	nkBody* body = (nkBody*)malloc(sizeof(nkBody));
 	assert(body);
 

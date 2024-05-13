@@ -20,3 +20,6 @@ extern bool ncEditorIntersect;
 void InitEditor();
 void UpdateEditor(Vector2 position);
 void DrawEditor(Vector2 position);
+
+struct nkBody* getBodyIntersect(struct nkBody* bodies, Vector2 position); 
+void drawLineBodyToPosition(struct nkBody* body, Vector2 position);
