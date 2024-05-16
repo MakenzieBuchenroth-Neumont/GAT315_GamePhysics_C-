@@ -10,6 +10,7 @@ typedef struct nkEditorData {
     float massMinValue;
     float bodyDampingValue;
     float bodyGravityValue;
+    float gravityScaleValue;
 } nkEditorData_t;
 
 extern nkEditorData_t nkEditorData;

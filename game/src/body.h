@@ -30,6 +30,8 @@ typedef struct nkBody {
 	float gravityScale;
 	float damping;
 
+	float restitution;
+
 	Vector3 color;
 
 	struct nkBody* next;
@@ -45,7 +47,7 @@ inline void applyForce(nkBody* body, Vector2 force, nkForceMode_t forceMode) {
 		break;
 	case FM_IMPULSE:
 		// applies a sudden change in momentum (velocity)
-		body->velocity = Vector2Scale(force, body->inverseMass);
+		body->velocity = Vector2Add(body->velocity, Vector2Scale(force, body->inverseMass));
 		break;
 	case FM_VELOCITY:
 		body->velocity = force;
