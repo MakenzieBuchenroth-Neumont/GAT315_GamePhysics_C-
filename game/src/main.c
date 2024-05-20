@@ -24,6 +24,10 @@
 #define MAX_BODIES 100000
 #define MAX_POINTS 20
 
+float fixedTimeStep = 1.0f / 50.0f;
+
+float timeAccumalator;
+
 //https://chat.openai.com/share/40b5a6e1-c9ca-4bbb-bec9-c849d2444986
 int main(void) {
 
@@ -78,7 +82,7 @@ int main(void) {
 				//Vector2 force = Vector2Scale(getVector2FromAngle(getRandomFloatValue(0, 360) * DEG2RAD), getRandomFloatValue(1000, 2000));
 			}
 			/*int random = GetRandomValue(0, 2);
-			
+
 				if (random == 0) {
 					// circular,multicolored burst
 					for (int i = 0; i < 1; i++) {
@@ -126,66 +130,70 @@ int main(void) {
 						//Vector2 offset = Vector2Scale(getVector2FromAngle(angle), 1000);
 					}
 				}*/
-			}
+		}
 
-			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && selectedBody) connectBody = selectedBody;
-			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && connectBody) drawLineBodyToPosition(connectBody, position);
-			if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && connectBody) {
-				if (selectedBody && selectedBody != connectBody) {
-					nkSpring_t* spring = createSpring(connectBody, selectedBody, Vector2Distance(connectBody->position, selectedBody->position), 20);
-					addSpring(spring);
-				}
+		if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && selectedBody) connectBody = selectedBody;
+		if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && connectBody) drawLineBodyToPosition(connectBody, position);
+		if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && connectBody) {
+			if (selectedBody && selectedBody != connectBody) {
+				nkSpring_t* spring = createSpring(connectBody, selectedBody, Vector2Distance(connectBody->position, selectedBody->position), 20);
+				addSpring(spring);
 			}
-
-			// apply force
+		}
+		nkContact_t* contacts = NULL;
+		timeAccumalator += dt;
+		while (timeAccumalator >= fixedTimeStep) {
+			timeAccumalator -= fixedTimeStep;
 			applyGravitation(nkBodies, nkEditorData.gravitationScaleValue);
 			applySpringForce(nkSprings);
-
 			// update bodies
 			for (nkBody* body = nkBodies; body; body = body->next) {
-				step(body, dt);
+				step(body, fixedTimeStep);
 			}
-
 			// collision
-			nkContact_t* contacts = NULL;
+			destroyAllContacts(contacts);
 			createContacts(nkBodies, &contacts);
 			separateContacts(contacts);
 			resolveContacts(contacts);
-
-			//render
-			BeginDrawing();
-			ClearBackground(BLACK);
-
-
-			//stats
-			DrawText(TextFormat("FPS: %.2f (%.2f ms)", fps, 1000 / fps), 10, 10, 20, LIME);
-			DrawText(TextFormat("Frame: %.4f", dt), 10, 30, 20, LIME);
-
-			// draw springs
-			for (nkSpring_t* spring = nkSprings; spring; spring = spring->next) {
-				Vector2 screen1 = ConvertWorldToScreen(spring->body1->position);
-				Vector2 screen2 = ConvertWorldToScreen(spring->body2->position);
-				DrawLine((int)screen1.x, (int)screen1.y, (int)screen2.x, (int)screen2.y, RED);
-			}
-
-			// draw bodies
-			for (nkBody* body = nkBodies; body; body = body->next) {
-				Color circleColor = { (unsigned char)(body->color.x * 255), (unsigned char)(body->color.y * 255), (unsigned char)(body->color.z * 255), 255 };
-
-				Vector2 screen = ConvertWorldToScreen(body->position);
-				DrawCircle((int)screen.x, (int)screen.y, ConvertWorldToPixel(body->mass * 0.5f), circleColor);
-			}
-
-			// draw contacts
-			for (nkContact_t* contact = contacts; contact; contact = contact->next) {
-				Vector2 screen = ConvertWorldToScreen(contact->body1->position);
-				DrawCircle((int)screen.x, (int)screen.y, ConvertWorldToPixel(contact->body1->mass * 0.5f), YELLOW);
-			}
-
-			DrawEditor(position);
-
-			EndDrawing();
 		}
-		CloseWindow();
-		return 0;
+
+		// apply force
+		applyGravitation(nkBodies, nkEditorData.gravitationScaleValue);
+		applySpringForce(nkSprings);
+
+		//render
+		BeginDrawing();
+		ClearBackground(BLACK);
+
+		//stats
+		DrawText(TextFormat("FPS: %.2f (%.2f ms)", fps, 1000 / fps), 10, 10, 20, LIME);
+		DrawText(TextFormat("Frame: %.4f", dt), 10, 30, 20, LIME);
+
+		// draw springs
+		for (nkSpring_t* spring = nkSprings; spring; spring = spring->next) {
+			Vector2 screen1 = ConvertWorldToScreen(spring->body1->position);
+			Vector2 screen2 = ConvertWorldToScreen(spring->body2->position);
+			DrawLine((int)screen1.x, (int)screen1.y, (int)screen2.x, (int)screen2.y, RED);
+		}
+
+		// draw bodies
+		for (nkBody* body = nkBodies; body; body = body->next) {
+			Color circleColor = { (unsigned char)(body->color.x * 255), (unsigned char)(body->color.y * 255), (unsigned char)(body->color.z * 255), 255 };
+
+			Vector2 screen = ConvertWorldToScreen(body->position);
+			DrawCircle((int)screen.x, (int)screen.y, ConvertWorldToPixel(body->mass * 0.5f), circleColor);
+		}
+
+		// draw contacts
+		for (nkContact_t* contact = contacts; contact; contact = contact->next) {
+			Vector2 screen = ConvertWorldToScreen(contact->body1->position);
+			DrawCircle((int)screen.x, (int)screen.y, ConvertWorldToPixel(contact->body1->mass * 0.5f), YELLOW);
+		}
+
+		DrawEditor(position);
+
+		EndDrawing();
 	}
+	CloseWindow();
+	return 0;
+}
