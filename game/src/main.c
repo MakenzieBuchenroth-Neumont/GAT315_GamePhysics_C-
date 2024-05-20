@@ -23,9 +23,6 @@
 
 #define MAX_BODIES 100000
 #define MAX_POINTS 20
-
-float fixedTimeStep = 1.0f / 50.0f;
-
 float timeAccumalator;
 
 //https://chat.openai.com/share/40b5a6e1-c9ca-4bbb-bec9-c849d2444986
@@ -41,10 +38,11 @@ int main(void) {
 
 	// initialize world
 	//nkGravity = (Vector2){ 0, 30 };
-	nkGravity = (Vector2){ 0, -1 };
 
 	// game loop
 	while (!WindowShouldClose()) {
+		float fixedTimeStep = (1.0f / nkEditorData.timestep);
+		nkGravity = (Vector2){ 0, -nkEditorData.gravity };
 		//update
 		float dt = GetFrameTime();
 		float fps = (float)GetFPS();
@@ -69,14 +67,14 @@ int main(void) {
 			Color hsvColor = ColorFromHSV(360, 100, 100);
 			float angleIncrement = 360.0f / 5; // angle between each point of the star
 			for (int i = 0; i < 1; i++) {
-				nkBody* body = createBody(ConvertScreenToWorld(position), getRandomFloatValue(nkEditorData.massMinValue, nkEditorData.massMaxValue), nkEditorData.DropdownBox004Active);
+				nkBody* body = createBody(ConvertScreenToWorld(position), nkEditorData.mass, nkEditorData.DropdownBox004Active);
 				body->position = ConvertScreenToWorld(position);
 				body->color.x = (float)hsvColor.r / 255.0f;
 				body->color.y = (float)hsvColor.g / 255.0f;
 				body->color.z = (float)hsvColor.b / 255.0f;
 				body->damping = 0; //2.5f;
-				body->restitution = 0.8f;
-				body->gravityScale = nkEditorData.gravityScaleValue; //20;
+				body->restitution = nkEditorData.restitution;
+				body->gravityScale = nkEditorData.gravityScale; //20;
 
 				addBody(body);
 				//Vector2 force = Vector2Scale(getVector2FromAngle(getRandomFloatValue(0, 360) * DEG2RAD), getRandomFloatValue(1000, 2000));
@@ -136,30 +134,34 @@ int main(void) {
 		if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && connectBody) drawLineBodyToPosition(connectBody, position);
 		if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && connectBody) {
 			if (selectedBody && selectedBody != connectBody) {
-				nkSpring_t* spring = createSpring(connectBody, selectedBody, Vector2Distance(connectBody->position, selectedBody->position), 20);
+				nkSpring_t* spring = createSpring(connectBody, selectedBody, Vector2Distance(connectBody->position, selectedBody->position), nkEditorData.stiffness);
 				addSpring(spring);
 			}
 		}
-		nkContact_t* contacts = NULL;
-		timeAccumalator += dt;
-		while (timeAccumalator >= fixedTimeStep) {
-			timeAccumalator -= fixedTimeStep;
-			applyGravitation(nkBodies, nkEditorData.gravitationScaleValue);
-			applySpringForce(nkSprings);
-			// update bodies
-			for (nkBody* body = nkBodies; body; body = body->next) {
-				step(body, fixedTimeStep);
+			nkContact_t* contacts = NULL;
+		if (nkEditorData.simulate) {
+			timeAccumalator += dt;
+			while (timeAccumalator >= fixedTimeStep) {
+				timeAccumalator -= fixedTimeStep;
+				applyGravitation(nkBodies, nkEditorData.gravitationScaleValue);
+				applySpringForce(nkSprings);
+				// update bodies
+				for (nkBody* body = nkBodies; body; body = body->next) {
+					step(body, fixedTimeStep);
+				}
+				// collision
+				destroyAllContacts(contacts);
+				createContacts(nkBodies, &contacts);
+				separateContacts(contacts);
+				resolveContacts(contacts);
 			}
-			// collision
-			destroyAllContacts(contacts);
-			createContacts(nkBodies, &contacts);
-			separateContacts(contacts);
-			resolveContacts(contacts);
 		}
 
-		// apply force
-		applyGravitation(nkBodies, nkEditorData.gravitationScaleValue);
-		applySpringForce(nkSprings);
+		if (nkEditorData.reset) {
+			nkBodies = NULL;
+			nkSprings = NULL;
+			contacts = NULL;
+		}
 
 		//render
 		BeginDrawing();

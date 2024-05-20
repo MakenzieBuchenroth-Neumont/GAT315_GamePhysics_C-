@@ -3,14 +3,22 @@
 
 typedef struct nkEditorData {
     bool settingsActive;
-    float massMaxValue;
     float gravitationScaleValue;
     bool DropdownBox004EditMode;
     int DropdownBox004Active;
-    float massMinValue;
     float bodyDampingValue;
     float bodyGravityValue;
-    float gravityScaleValue;
+    float gravityScale;
+
+    float timestep;
+    float mass;
+    float gravity;
+
+    float stiffness;
+    float restitution;
+
+    bool simulate;
+    bool reset;
 } nkEditorData_t;
 
 extern nkEditorData_t nkEditorData;
