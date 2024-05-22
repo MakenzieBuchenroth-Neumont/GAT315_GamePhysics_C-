@@ -138,7 +138,7 @@ int main(void) {
 				addSpring(spring);
 			}
 		}
-			nkContact_t* contacts = NULL;
+		nkContact_t* contacts = NULL;
 		if (nkEditorData.simulate) {
 			timeAccumalator += dt;
 			while (timeAccumalator >= fixedTimeStep) {
@@ -157,10 +157,25 @@ int main(void) {
 			}
 		}
 
+		if (IsKeyDown(KEY_LEFT_ALT)) {
+			if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) && selectedBody) connectBody = selectedBody;
+			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && connectBody) drawLineBodyToPosition(connectBody, position);
+			if (connectBody)
+			{
+				Vector2 world = ConvertScreenToWorld(position);
+				if (connectBody->type == BT_STATIC || connectBody->type == BT_KINEMATIC) {
+					connectBody->position = world;
+				}
+				else {
+					ApplySpringForcePosition(world, connectBody, 0, 20, 5);
+				}
+			}
+		}
+
 		if (nkEditorData.reset) {
-			nkBodies = NULL;
-			nkSprings = NULL;
-			contacts = NULL;
+			destroyAllBodies();
+			destroyAllContacts(contacts);
+			destroyAllSprings();
 		}
 
 		//render

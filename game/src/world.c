@@ -54,3 +54,16 @@ void destroyBody(nkBody* body) {
 	nkBodyCount--;
 	free(body);
 }
+
+void destroyAllBodies() {
+	if (!nkBodies) return;
+
+	nkBody* body = nkBodies;
+	while (body) {
+		nkBody* next = body->next;
+		free(body);
+		body = next;
+	}
+
+	nkBodies = NULL;
+}

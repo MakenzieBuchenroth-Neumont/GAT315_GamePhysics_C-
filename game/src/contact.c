@@ -17,8 +17,7 @@ void addContact(nkContact_t* contact, nkContact_t** contacts)
 	*contacts = contact;
 }
 
-void destroyAllContacts(nkContact_t** contacts)
-{
+void destroyAllContacts(nkContact_t** contacts) {
 	if (!contacts) return;
 	if (!*contacts) return;
 
